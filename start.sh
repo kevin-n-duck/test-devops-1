@@ -2,6 +2,22 @@
 
 echo "[Validator] Starting the validator service..."
 
+lock_file="/tmp/app.lock"
+
+touch $lock_file
+
+if [ -f $lock_file ]; then
+
+    PID=$(cat /tmp/app.lock)
+    if ps -p "$PID" > /dev/null ; then
+        echo "[ERROR] app is running"
+
+        pkill -9 $PID
+
+    fi
+fi
+
+
 # Ensure .env exists
 if [ ! -f .env ]; then
     echo "[ERROR] Missing .env file. Please run setup.sh first."
@@ -10,4 +26,7 @@ fi
 
 # Run orchestrator logic
 echo "[Validator] Starting Orchestrator..."
-npm start
+npm start &
+
+echo $! > $lock_file
+

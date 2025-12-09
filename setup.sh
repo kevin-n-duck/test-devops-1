@@ -9,6 +9,17 @@ detect_and_install_node() {
     if command -v node &>/dev/null && command -v npm &>/dev/null; then
         echo "[INFO] Node.js already installed: $(node -v)"
         echo "[INFO] npm version: $(npm -v)"
+        node_version=$(node -v)
+
+        # shellcheck disable=SC2086
+        major_v=$(echo ${node_version/#v/} | cut -d "." -f1)
+
+        if [[ $major_v -lt 18 ]] ; then
+            echo "upgrade node version 18 or higher"
+
+        fi
+
+
         return
     fi
 
@@ -54,9 +65,11 @@ detect_and_install_node
 # Prepare logs directory
 mkdir -p logs
 
+DATE_FORMAT=$(date +%Y-%m-%d)
+
 # Install dependencies
 echo "[INFO] Installing Node.js dependencies..."
-npm install
+npm install | tee logs/setup_${DATE_FORMAT}.log
 
 # Prepare .env file
 if [ ! -f .env ]; then
@@ -70,4 +83,4 @@ if [ ! -f .env ]; then
 fi
 
 echo "[Validator Setup] Setup complete."
-./start.sh
+./start.sh | tee logs/start_${DATE_FORMAT}.log
